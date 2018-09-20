@@ -232,6 +232,147 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/09/20/Android-的消息机制/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="黎磊">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/09/20/Android-的消息机制/" itemprop="url">Android 的消息机制</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-09-20T14:22:00+08:00">
+                2018-09-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2018/09/20/Android-的消息机制/" class="leancloud_visitors" data-flag-title="Android 的消息机制">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">Visitors&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>为了更好的理解 Looper 的工作原理，我们需要对 ThreadLocal 进行了解，如果对 ThreadLocal 没有了解的童鞋，可以参看  <a href="https://www.jianshu.com/p/0ba78fe61c40" target="_blank" rel="noopener">ThreadLocal 原理</a></p>
+<h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>  Handler 作为日常开发的必备，不可避免就要涉及这方面的知识。从开发者角度来说，<strong>Handler 是 Android 消息机制的上层接口</strong>，使得开发的时只需与 Handler 交互即可。Handler 使用也很简单，<strong>能够轻松将一个任务切换到 Handler 所在的线程中执行</strong>。</p>
+<p>很多人认为Handler的作用就是更新UI，的确没错，但是更新UI仅仅是Handler的一个特殊的使用场景。具体来说，就是有时候需要在子线程做一些耗时操作，比如说访问网络或者耗时的I/O操作，当这些耗时操作完成时，程序的UI进行相应的改变。由于安卓开发规范的限制，我们不能在子线程中访问UI控件，因为UI的控件是线程非安全的，这个时候通过Handler就可以将更新UI的操作切换到主线程中执行。</p>
+<p>Android 的消息机制主要是指 Handler 的运行机制。事实上，Handler，Looper，MessageQueue 是一套运行体制而出现的，<strong>MessageQueue</strong> 是一个消息队列，<strong>以队列形式提供插入和删除，主要用于消息的存储，内部实现是采用单链表的形式来组织 Message。</strong>而 <strong>Looper 用于处理消息</strong>，Looper 内部会以无限循环去查是否有新的 Message ，有则处理，没有就等待。需要特殊说明的是，Looper 内部是使用 ThreadLocal 实现的，由于ThreadLocal 可以在每一个线程中互不干扰的存取数据，所以通过ThreadLocal 就可以轻松获取每个线程的 Looper。</p>
+<p>Message ：android.os.Message是定义一个Messge包含必要的描述和属性数据，并且此对象可以被发送给android.os.Handler处理。属性字段：arg1、arg2、what、obj、replyTo等；其中arg1和arg2是用来存放整型数据的；what是用来保存消息标示的；obj是Object类型的任意对象；replyTo是消息管理器，会关联到一个handler，handler就是处理其中的消息。通常对Message对象不是直接new出来的，只要调用handler中的obtainMessage方法来直接获得Message对象。</p>
+<p>需要特殊说明的是，<strong>线程是默认没有 Looper 的</strong>，如果需要使用 Handler 就必须为线程创建Looper，但是APP 的主线程中，即 ActivityThread ，在主线程被创建的时候就会初始化 Looper。另外，在没有Looper 的线程创建 Handler 也会失败。</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/3998756-3adfd5910e1e6f84.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="Handler 工作过程"><br><img src="https://upload-images.jianshu.io/upload_images/3998756-96c14e3433511788.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="Hnadler 的工作流程"></p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/09/20/Android-的消息机制/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/21/Android线程和线程池源码解读/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -672,7 +813,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-count">4</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -733,7 +874,7 @@
       <div class="footer-inner">
         <div class="copyright">&copy; 2017 &mdash; <span itemprop="copyrightYear">2018</span>
   <span class="with-love">
-    <i class="fa fa-/uploads/avatar.jpg"></i>
+    <i class="fa fa-user"></i>
   </span>
   <span class="author" itemprop="copyrightHolder">黎磊</span>
 
