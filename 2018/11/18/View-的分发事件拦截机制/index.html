@@ -79,22 +79,22 @@
 
 
 
-<meta name="description" content="View 的分发 事件拦截机制 这一个知识点也是写烂了的，可是作为 Android 开发者又不得不学习这部分，学习了呢，总觉得要写点东西出来才觉得有感觉，得，就有这一篇文章了。 API 27 流程介绍在单点触摸中，我们对屏幕的点击，滑动，抬起等一系的动作都是由一个一个MotionEvent对象组成的触摸事件。MotionEvent 是对一个对一个事件的封装，里面包括动作、坐标等等信息，根据不同动作">
+<meta name="description" content="这一个知识点也是写烂了的，可是作为 Android 开发者又不得不学习这部分，学习了呢，总觉得要写点东西出来才觉得有感觉，得，就有这一篇文章了。 API 27 流程介绍在单点触摸中，我们对屏幕的点击，滑动，抬起等一系的动作都是由一个一个MotionEvent对象组成的触摸事件。MotionEvent 是对一个对一个事件的封装，里面包括动作、坐标等等信息，根据不同动作，主要有以下三种事件类型：  A">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Blog">
-<meta property="og:url" content="http://yoursite.com/2018/11/18/View 的分发 事件拦截机制/index.html">
+<meta property="og:title" content="View 的分发事件拦截机制">
+<meta property="og:url" content="http://yoursite.com/2018/11/18/View-的分发事件拦截机制/index.html">
 <meta property="og:site_name" content="Blog">
-<meta property="og:description" content="View 的分发 事件拦截机制 这一个知识点也是写烂了的，可是作为 Android 开发者又不得不学习这部分，学习了呢，总觉得要写点东西出来才觉得有感觉，得，就有这一篇文章了。 API 27 流程介绍在单点触摸中，我们对屏幕的点击，滑动，抬起等一系的动作都是由一个一个MotionEvent对象组成的触摸事件。MotionEvent 是对一个对一个事件的封装，里面包括动作、坐标等等信息，根据不同动作">
+<meta property="og:description" content="这一个知识点也是写烂了的，可是作为 Android 开发者又不得不学习这部分，学习了呢，总觉得要写点东西出来才觉得有感觉，得，就有这一篇文章了。 API 27 流程介绍在单点触摸中，我们对屏幕的点击，滑动，抬起等一系的动作都是由一个一个MotionEvent对象组成的触摸事件。MotionEvent 是对一个对一个事件的封装，里面包括动作、坐标等等信息，根据不同动作，主要有以下三种事件类型：  A">
 <meta property="og:locale" content="default">
 <meta property="og:image" content="https://upload-images.jianshu.io/upload_images/3998756-a49851c137ad3679.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
 <meta property="og:image" content="https://upload-images.jianshu.io/upload_images/3998756-7feebdca3bad85fc.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
 <meta property="og:image" content="https://upload-images.jianshu.io/upload_images/3998756-b2abafc93bd4a608.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
 <meta property="og:image" content="https://upload-images.jianshu.io/upload_images/3998756-69ad8ec9c982a3e9.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
 <meta property="og:image" content="https://upload-images.jianshu.io/upload_images/3998756-7feebdca3bad85fc.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
-<meta property="og:updated_time" content="2018-11-18T09:18:30.157Z">
+<meta property="og:updated_time" content="2018-11-18T09:45:08.767Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Blog">
-<meta name="twitter:description" content="View 的分发 事件拦截机制 这一个知识点也是写烂了的，可是作为 Android 开发者又不得不学习这部分，学习了呢，总觉得要写点东西出来才觉得有感觉，得，就有这一篇文章了。 API 27 流程介绍在单点触摸中，我们对屏幕的点击，滑动，抬起等一系的动作都是由一个一个MotionEvent对象组成的触摸事件。MotionEvent 是对一个对一个事件的封装，里面包括动作、坐标等等信息，根据不同动作">
+<meta name="twitter:title" content="View 的分发事件拦截机制">
+<meta name="twitter:description" content="这一个知识点也是写烂了的，可是作为 Android 开发者又不得不学习这部分，学习了呢，总觉得要写点东西出来才觉得有感觉，得，就有这一篇文章了。 API 27 流程介绍在单点触摸中，我们对屏幕的点击，滑动，抬起等一系的动作都是由一个一个MotionEvent对象组成的触摸事件。MotionEvent 是对一个对一个事件的封装，里面包括动作、坐标等等信息，根据不同动作，主要有以下三种事件类型：  A">
 <meta name="twitter:image" content="https://upload-images.jianshu.io/upload_images/3998756-a49851c137ad3679.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
 
 
@@ -125,13 +125,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2018/11/18/View 的分发 事件拦截机制/"/>
+  <link rel="canonical" href="http://yoursite.com/2018/11/18/View-的分发事件拦截机制/"/>
 
 
 
 
 
-  <title> | Blog</title>
+  <title>View 的分发事件拦截机制 | Blog</title>
   
 
 
@@ -238,7 +238,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/18/View 的分发 事件拦截机制/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/18/View-的分发事件拦截机制/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="黎磊">
@@ -255,7 +255,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline"></h1>
+          <h1 class="post-title" itemprop="name headline">View 的分发事件拦截机制</h1>
         
 
         <div class="post-meta">
@@ -267,7 +267,7 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-11-18T17:22:54+08:00">
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-11-18T17:43:39+08:00">
                 2018-11-18
               </time>
             
@@ -285,7 +285,7 @@
 
           
           
-             <span id="/2018/11/18/View 的分发 事件拦截机制/" class="leancloud_visitors" data-flag-title="">
+             <span id="/2018/11/18/View-的分发事件拦截机制/" class="leancloud_visitors" data-flag-title="View 的分发事件拦截机制">
                <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -316,8 +316,7 @@
       
 
       
-        <h1 id="View-的分发-事件拦截机制"><a href="#View-的分发-事件拦截机制" class="headerlink" title="View 的分发 事件拦截机制"></a>View 的分发 事件拦截机制</h1><hr>
-<p>这一个知识点也是写烂了的，可是作为 Android 开发者又不得不学习这部分，学习了呢，总觉得要写点东西出来才觉得有感觉，得，就有这一篇文章了。</p>
+        <p>这一个知识点也是写烂了的，可是作为 Android 开发者又不得不学习这部分，学习了呢，总觉得要写点东西出来才觉得有感觉，得，就有这一篇文章了。</p>
 <p><strong>API 27</strong></p>
 <h2 id="流程介绍"><a href="#流程介绍" class="headerlink" title="流程介绍"></a>流程介绍</h2><p>在单点触摸中，我们对屏幕的点击，滑动，抬起等一系的动作都是由一个一个MotionEvent对象组成的触摸事件。MotionEvent 是对一个对一个事件的封装，里面包括动作、坐标等等信息，根据不同动作，主要有以下三种事件类型：</p>
 <ol>
@@ -624,7 +623,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#View-的分发-事件拦截机制"><span class="nav-number">1.</span> <span class="nav-text">View 的分发 事件拦截机制</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#流程介绍"><span class="nav-number">1.1.</span> <span class="nav-text">流程介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#始于-Activity"><span class="nav-number">1.2.</span> <span class="nav-text">始于 Activity</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ViewGroup"><span class="nav-number">1.3.</span> <span class="nav-text">ViewGroup</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#View-最后可能接收到进行消费"><span class="nav-number">1.4.</span> <span class="nav-text">View 最后可能接收到进行消费</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#流程介绍"><span class="nav-number">1.</span> <span class="nav-text">流程介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#始于-Activity"><span class="nav-number">2.</span> <span class="nav-text">始于 Activity</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ViewGroup"><span class="nav-number">3.</span> <span class="nav-text">ViewGroup</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#View-最后可能接收到进行消费"><span class="nav-number">4.</span> <span class="nav-text">View 最后可能接收到进行消费</span></a></li></ol></div>
             
 
           </div>
