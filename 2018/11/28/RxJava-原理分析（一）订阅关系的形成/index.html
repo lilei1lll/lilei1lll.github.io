@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="最近复习RxJava的时候发现解说RxJava的原理不多，所以，来机智的骗心心来了。 依赖： implementation &amp;quot;io.reactivex.rxjava2:rxjava:2.2.4&amp;quot; 简单使用待会儿讲解的原理呢，是由这个使用 demo 来讲解。1234567891011121314151617Observable.create(new ObservableOnSub">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RxJava 原理分析（一）订阅关系的形成">
+<meta property="og:url" content="http://yoursite.com/2018/11/28/RxJava-原理分析（一）订阅关系的形成/index.html">
+<meta property="og:site_name" content="Blog">
+<meta property="og:description" content="最近复习RxJava的时候发现解说RxJava的原理不多，所以，来机智的骗心心来了。 依赖： implementation &amp;quot;io.reactivex.rxjava2:rxjava:2.2.4&amp;quot; 简单使用待会儿讲解的原理呢，是由这个使用 demo 来讲解。1234567891011121314151617Observable.create(new ObservableOnSub">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/3998756-d4ec7353e56bf7db.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:updated_time" content="2018-11-28T05:24:23.118Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="RxJava 原理分析（一）订阅关系的形成">
+<meta name="twitter:description" content="最近复习RxJava的时候发现解说RxJava的原理不多，所以，来机智的骗心心来了。 依赖： implementation &amp;quot;io.reactivex.rxjava2:rxjava:2.2.4&amp;quot; 简单使用待会儿讲解的原理呢，是由这个使用 demo 来讲解。1234567891011121314151617Observable.create(new ObservableOnSub">
+<meta name="twitter:image" content="https://upload-images.jianshu.io/upload_images/3998756-d4ec7353e56bf7db.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"hide","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '黎磊'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/11/28/RxJava-原理分析（一）订阅关系的形成/"/>
+
+
+
+
+
+  <title>RxJava 原理分析（一）订阅关系的形成 | Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/28/RxJava-原理分析（一）订阅关系的形成/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="黎磊">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">RxJava 原理分析（一）订阅关系的形成</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-11-28T13:23:12+08:00">
+                2018-11-28
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2018/11/28/RxJava-原理分析（一）订阅关系的形成/" class="leancloud_visitors" data-flag-title="RxJava 原理分析（一）订阅关系的形成">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">Visitors&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>最近复习RxJava的时候发现解说RxJava的原理不多，所以，来机智的骗心心来了。</p>
+<p><strong>依赖：</strong></p>
+<pre><code>implementation &quot;io.reactivex.rxjava2:rxjava:2.2.4&quot;
+</code></pre><h2 id="简单使用"><a href="#简单使用" class="headerlink" title="简单使用"></a>简单使用</h2><p>待会儿讲解的原理呢，是由这个使用 demo 来讲解。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">Observable.create(new ObservableOnSubscribe&lt;Integer&gt;() &#123;  // 创建被观察者</span><br><span class="line">    @Override</span><br><span class="line">    public void subscribe(ObservableEmitter&lt;Integer&gt; emitter) throws Exception &#123;</span><br><span class="line">        emitter.onNext(1);   // 发射器，发射一个事件</span><br><span class="line">        emitter.onNext(2);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;).subscribe(new Consumer&lt;Integer&gt;() &#123;  // 观察者</span><br><span class="line">    @Override</span><br><span class="line">    public void accept(Integer integer) throws Exception &#123;  // 用于处理 onNext 事件</span><br><span class="line">        Log.d(TAG, &quot;accept: &quot;+integer);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;, new Consumer&lt;Throwable&gt;() &#123;</span><br><span class="line">            @Override</span><br><span class="line">            public void accept(Throwable throwable) throws Exception &#123;</span><br><span class="line">                Log.d(TAG, &quot;accept: &quot;+throwable.getMessage());</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br></pre></td></tr></table></figure></p>
+<h2 id="原理解析"><a href="#原理解析" class="headerlink" title="原理解析"></a>原理解析<a id="more"></a></h2><h3 id="Observable-create-ObservableOnSubscribe"><a href="#Observable-create-ObservableOnSubscribe" class="headerlink" title="Observable.create(ObservableOnSubscribe)"></a>Observable.create(ObservableOnSubscribe<t>)</t></h3><p>在上面的使用demo中，这是整个订阅过程的开始：创建一个被观察者。来，我们看一下我们的被观察者是什么。</p>
+<p>Observable.class<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">@CheckReturnValue</span><br><span class="line">@SchedulerSupport(SchedulerSupport.NONE)</span><br><span class="line">public static &lt;T&gt; Observable&lt;T&gt; create(ObservableOnSubscribe&lt;T&gt; source) &#123;</span><br><span class="line">    ObjectHelper.requireNonNull(source, &quot;source is null&quot;);  // 判空</span><br><span class="line">    return RxJavaPlugins.onAssembly(new ObservableCreate&lt;T&gt;(source));  // 默认直接返回这个new出来的ObservableCreate</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这个<code>ObjectHelper.requireNonNull</code>怎么判空啊？<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">public static &lt;T&gt; T requireNonNull(T object, String message) &#123;</span><br><span class="line">    if (object == null) &#123;</span><br><span class="line">        throw new NullPointerException(message);</span><br><span class="line">    &#125;</span><br><span class="line">    return object;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>简直不要太简单，就是判断输入的object是不是null，不是就返回，是就抛出异常。</p>
+<p>那这个<code>RxJavaPlugins</code>又是干嘛的呢？用过的都知道，没用过推荐看一下<a href="https://www.jianshu.com/p/0f2d6c2387c9" target="_blank" rel="noopener">给初学者的RxJava2.0教程(十)</a> 。其实我们没有对这个 RxJavaPlugins 做设置的话，就是返回我们传进来的这个参数。后面我们看到这个RxJavaPlugins就可以默认为直接返回参数。</p>
+<p>书接上文，那调用 <code>Observable.create(ObservableOnSubscribe)</code> ，岂不是就是把自己在外部实现的 ObservableOnSubscribe 匿名内部类包装到 <code>ObservableCreate</code> 中去罗。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">public final class ObservableCreate&lt;T&gt; extends Observable&lt;T&gt; &#123;  // 注意继承关系哦</span><br><span class="line">    final ObservableOnSubscribe&lt;T&gt; source;  // 最原始的目标：被观察者</span><br><span class="line"></span><br><span class="line">    public ObservableCreate(ObservableOnSubscribe&lt;T&gt; source) &#123; </span><br><span class="line">        this.source = source;  // 传进来的是外面new的匿名内部类ObservableOnSubscribe</span><br><span class="line">    &#125;</span><br><span class="line">...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>看到这里，emmm，nice，保存住了被观察者，返回了<code>ObservableCreate</code> 对象。注意哦，这个时候后面一个 <code>.</code> 操作的就是这个 <code>ObservableCreate</code>对象（换言之，后面点的就是<code>ObservableCreate</code>中的方法）。</p>
+<p>好的，下面就是 <code>.subscribe</code></p>
+<h3 id="subscribe"><a href="#subscribe" class="headerlink" title=".subscribe"></a>.subscribe</h3><p>这个方法就很有意思了，实现了订阅这个操作，或者说，是触发了onSuscribe、onNext 等操作。</p>
+<p>先看一下 subscribe 这个方法的重载：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">public final Disposable subscribe() &#123;&#125;   // 注意哦，这里的都是final方法</span><br><span class="line">public final Disposable subscribe(Consumer&lt;? super T&gt; onNext) &#123;&#125;</span><br><span class="line">public final Disposable subscribe(Consumer&lt;? super T&gt; onNext, Consumer&lt;? super Throwable&gt; onError) &#123;&#125; </span><br><span class="line">public final Disposable subscribe(Consumer&lt;? super T&gt; onNext, Consumer&lt;? super Throwable&gt; onError, Action onComplete) &#123;&#125;</span><br><span class="line">public final Disposable subscribe(Consumer&lt;? super T&gt; onNext, Consumer&lt;? super Throwable&gt; onError, Action onComplete, Consumer&lt;? super Disposable&gt; onSubscribe) &#123;&#125;</span><br><span class="line">public final void subscribe(Observer&lt;? super T&gt; observer) &#123;&#125;</span><br></pre></td></tr></table></figure></p>
+<p>有点多哈，但是实现呢？很简单，大家都调用最后一个处理，没有传参的都添上默认的 Custom 就可以了。什么叫默认实现，就是实现了接口，但是默认不处理，比如默认的Action，还有就是简单处理，比如onError，但是都不是很重要，我们主要关注我们自己实现的东西嘛。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">public final Disposable subscribe(Consumer&lt;? super T&gt; onNext, Consumer&lt;? super Throwable&gt; onError) &#123;</span><br><span class="line">    return subscribe(onNext, onError, Functions.EMPTY_ACTION, Functions.emptyConsumer());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">@CheckReturnValue</span><br><span class="line">@SchedulerSupport(SchedulerSupport.NONE)</span><br><span class="line">public final Disposable subscribe(Consumer&lt;? super T&gt; onNext, Consumer&lt;? super Throwable&gt; onError,</span><br><span class="line">        Action onComplete, Consumer&lt;? super Disposable&gt; onSubscribe) &#123;</span><br><span class="line">    ObjectHelper.requireNonNull(onNext, &quot;onNext is null&quot;);  // 挨个判空</span><br><span class="line">    ObjectHelper.requireNonNull(onError, &quot;onError is null&quot;);</span><br><span class="line">    ObjectHelper.requireNonNull(onComplete, &quot;onComplete is null&quot;);</span><br><span class="line">    ObjectHelper.requireNonNull(onSubscribe, &quot;onSubscribe is null&quot;);</span><br><span class="line"></span><br><span class="line">    LambdaObserver&lt;T&gt; ls = new LambdaObserver&lt;T&gt;(onNext, onError, onComplete, onSubscribe);  // 用一个类来包裹</span><br><span class="line"></span><br><span class="line">    subscribe(ls);  // 包裹类的订阅</span><br><span class="line"></span><br><span class="line">    return ls;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>那么这个用来包裹的 LambdaObserver 又是什么鬼呢？<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">public final class LambdaObserver&lt;T&gt; extends AtomicReference&lt;Disposable&gt;</span><br><span class="line">        implements Observer&lt;T&gt;, Disposable, LambdaConsumerIntrospection &#123;</span><br><span class="line"></span><br><span class="line">    private static final long serialVersionUID = -7251123623727029452L;</span><br><span class="line">    final Consumer&lt;? super T&gt; onNext;</span><br><span class="line">    final Consumer&lt;? super Throwable&gt; onError;</span><br><span class="line">    final Action onComplete;</span><br><span class="line">    final Consumer&lt;? super Disposable&gt; onSubscribe;</span><br><span class="line"></span><br><span class="line">    public LambdaObserver(Consumer&lt;? super T&gt; onNext, Consumer&lt;? super Throwable&gt; onError,</span><br><span class="line">            Action onComplete,</span><br><span class="line">            Consumer&lt;? super Disposable&gt; onSubscribe) &#123;</span><br><span class="line">        super();</span><br><span class="line">        this.onNext = onNext;</span><br><span class="line">        this.onError = onError;</span><br><span class="line">        this.onComplete = onComplete;</span><br><span class="line">        this.onSubscribe = onSubscribe;</span><br><span class="line">    &#125;</span><br><span class="line">...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>就是将四个类型（onNext，onError，onComplete，onSubscribe）封装成一个一个对象，方便对整个流程的调用。</p>
+<p>将四个对象封装在一起了过后，就是应该是订阅了把？<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">@SchedulerSupport(SchedulerSupport.NONE)</span><br><span class="line">@Override</span><br><span class="line">public final void subscribe(Observer&lt;? super T&gt; observer) &#123;</span><br><span class="line">    ObjectHelper.requireNonNull(observer, &quot;observer is null&quot;);</span><br><span class="line">    try &#123;</span><br><span class="line">        observer = RxJavaPlugins.onSubscribe(this, observer);  // 检查需要执行预操作不，默认返回 observer</span><br><span class="line">        // 判空</span><br><span class="line">        ObjectHelper.requireNonNull(observer, &quot;The RxJavaPlugins.onSubscribe hook returned a null Observer. Please change the handler provided to RxJavaPlugins.setOnObservableSubscribe for invalid null returns. Further reading: https://github.com/ReactiveX/RxJava/wiki/Plugins&quot;);</span><br><span class="line"></span><br><span class="line">        subscribeActual(observer);  // 真正处理的函数</span><br><span class="line">    &#125; catch (NullPointerException e) &#123; // NOPMD</span><br><span class="line">        throw e;</span><br><span class="line">    &#125; catch (Throwable e) &#123;</span><br><span class="line">        Exceptions.throwIfFatal(e);</span><br><span class="line">        // can&apos;t call onError because no way to know if a Disposable has been set or not</span><br><span class="line">        // can&apos;t call onSubscribe because the call might have set a Subscription already</span><br><span class="line">        RxJavaPlugins.onError(e);  // 错误的话，捕获，并交给RxJavaPlugins#onError来处理，没有交给我们自定义的onError，莫看错啦</span><br><span class="line"></span><br><span class="line">        NullPointerException npe = new NullPointerException(&quot;Actually not, but can&apos;t throw other exceptions due to RS&quot;);</span><br><span class="line">        npe.initCause(e);</span><br><span class="line">        throw npe;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>真正有用的就是 <code>subscribeActual(observer);</code>这一句，吐血哦，还不订阅，我都快等不及了。好嘛，大神就是大神，一看，自己没实现。后面一想，就是牛逼。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * Operator implementations (both source and intermediate) should implement this method that</span><br><span class="line"> * performs the necessary business logic and handles the incoming &#123;@link Observer&#125;s.</span><br><span class="line"> * &lt;p&gt;There is no need to call any of the plugin hooks on the current &#123;@code Observable&#125; instance or</span><br><span class="line"> * the &#123;@code Observer&#125;; all hooks and basic safeguards have been</span><br><span class="line"> * applied by &#123;@link #subscribe(Observer)&#125; before this method gets called.</span><br><span class="line"> * @param observer the incoming Observer, never null</span><br><span class="line"> */</span><br><span class="line">protected abstract void subscribeActual(Observer&lt;? super T&gt; observer);</span><br></pre></td></tr></table></figure></p>
+<p><strong>所有的操作符都会重写这个方法</strong>，我是不是暴露了什么，emm，<strong>所有运算符返回都是 Observable 的子类</strong>，就比如说 <code>create</code> 返回的就是 <code>Observable</code> 的子类 <code>ObservableCreate</code>，后面就是在这基础上调用了。这里我们可以看到，其实所有的 subscribe 我们都重写不了，唯一能重写且必须重写的就是这个 subscribeActual。这就意味着，这个方法是我子类实现真正订阅的入口。</p>
+<p>前面讲解我们知道，现在在demo中调用的是 ObservableCreate 的 subscribe，那么事情就变得很简单，我们直接找到 ObservableCreate#subscribeActual(observer)  进行分析就好。在分析之前，先用图总结下前面的东西：<br><img src="https://upload-images.jianshu.io/upload_images/3998756-d4ec7353e56bf7db.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""></p>
+<p>好的嘞，那我们接下来就看一下核心的 subscribeActual 方法如何实现的？</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line">protected void subscribeActual(Observer&lt;? super T&gt; observer) &#123;  //传进来的就是前面的 LambdaObserver</span><br><span class="line">    CreateEmitter&lt;T&gt; parent = new CreateEmitter&lt;T&gt;(observer);  // 发射器，每一个操作符对应的类内部都会自己实现，因为处理逻辑不一样啊</span><br><span class="line">    observer.onSubscribe(parent);  // 回调了自己实现的 onSubscribe 对用的Consumer</span><br><span class="line"></span><br><span class="line">    try &#123;</span><br><span class="line">        source.subscribe(parent);   // 这个source就是初始化类的时候传进来的被观察者，这里将发送器给了它</span><br><span class="line">    &#125; catch (Throwable ex) &#123;</span><br><span class="line">        Exceptions.throwIfFatal(ex);</span><br><span class="line">        parent.onError(ex);  // 这里捕获的异常才交给自己写的Consumer处理</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里代码不多，干的事还不少，首先是new出我们的发射器，然后触发被观察者的订阅回调，然后再，执行被观察者的subscribe方法，如果捕获到异常就交给自定义的 onError 处理。</p>
+<p>流程倒是懂了，但是这个 发送器是什么狗东西呢？它是<code>ObservableCreate</code>的静态内部类：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">static final class CreateEmitter&lt;T&gt;   extends AtomicReference&lt;Disposable&gt; implements ObservableEmitter&lt;T&gt;, Disposable &#123;</span><br><span class="line"></span><br><span class="line">    private static final long serialVersionUID = -3434801548987643227L;</span><br><span class="line"></span><br><span class="line">    final Observer&lt;? super T&gt; observer;</span><br><span class="line"></span><br><span class="line">    CreateEmitter(Observer&lt;? super T&gt; observer) &#123;</span><br><span class="line">        this.observer = observer;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void onNext(T t) &#123;</span><br><span class="line">        if (t == null) &#123;</span><br><span class="line">            onError(new NullPointerException(&quot;onNext called with null. Null values are generally not allowed in 2.x operators and sources.&quot;));</span><br><span class="line">            return;</span><br><span class="line">        &#125;</span><br><span class="line">        if (!isDisposed()) &#123;</span><br><span class="line">            observer.onNext(t);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void onError(Throwable t) &#123;</span><br><span class="line">        if (!tryOnError(t)) &#123;</span><br><span class="line">            RxJavaPlugins.onError(t);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public boolean tryOnError(Throwable t) &#123;</span><br><span class="line">        if (t == null) &#123;</span><br><span class="line">            t = new NullPointerException(&quot;onError called with null. Null values are generally not allowed in 2.x operators and sources.&quot;);</span><br><span class="line">        &#125;</span><br><span class="line">        if (!isDisposed()) &#123;</span><br><span class="line">            try &#123;</span><br><span class="line">                observer.onError(t);</span><br><span class="line">            &#125; finally &#123;</span><br><span class="line">                dispose();</span><br><span class="line">            &#125;</span><br><span class="line">            return true;</span><br><span class="line">        &#125;</span><br><span class="line">        return false;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void onComplete() &#123;</span><br><span class="line">        if (!isDisposed()) &#123;</span><br><span class="line">            try &#123;</span><br><span class="line">                observer.onComplete();</span><br><span class="line">            &#125; finally &#123;</span><br><span class="line">                dispose();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void setDisposable(Disposable d) &#123;   DisposableHelper.set(this, d);   &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void setCancellable(Cancellable c) &#123;    setDisposable(new CancellableDisposable(c));    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public ObservableEmitter&lt;T&gt; serialize() &#123;     return new SerializedEmitter&lt;T&gt;(this);    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void dispose() &#123;    DisposableHelper.dispose(this);    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public boolean isDisposed() &#123;    return DisposableHelper.isDisposed(get());   &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public String toString() &#123;    return String.format(&quot;%s&#123;%s&#125;&quot;, getClass().getSimpleName(), super.toString());    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+      <div>
+        <div id="wechat_subscriber" style="display: block; padding: 10px 0; margin: 20px auto; width: 100%; text-align: center">
+    <img id="wechat_subscriber_qcode" src="/path/to/your/wechatqcode ex. /uploads/wechat-qcode.jpg" alt="黎磊 wechat" style="width: 200px; max-width: 100%;"/>
+    <div>积跬步，看千里</div>
+</div>
+
+      </div>
+    
+
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>坚持原创技术分享，您的支持将鼓励我继续创作！</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>Donate</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/uploads/wechat-reward-image.png" alt="黎磊 WeChat Pay"/>
+        <p>WeChat Pay</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/uploads/alipay-reward-imag.jpg" alt="黎磊 Alipay"/>
+        <p>Alipay</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/11/18/View-的分发事件拦截机制/" rel="next" title="View 的分发事件拦截机制">
+                <i class="fa fa-chevron-left"></i> View 的分发事件拦截机制
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/uploads/avatar.jpg"
+                alt="黎磊" />
+            
+              <p class="site-author-name" itemprop="name">黎磊</p>
+              <p class="site-description motion-element" itemprop="description">昨夕今夕</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">7</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://github.com/lilei1lll" title="我的 github" target="_blank">我的 github</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://www.jianshu.com/u/534e727eaebf" title="我的简书" target="_blank">我的简书</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简单使用"><span class="nav-number">1.</span> <span class="nav-text">简单使用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#原理解析"><span class="nav-number">2.</span> <span class="nav-text">原理解析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Observable-create-ObservableOnSubscribe"><span class="nav-number">2.1.</span> <span class="nav-text">Observable.create(ObservableOnSubscribe)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#subscribe"><span class="nav-number">2.2.</span> <span class="nav-text">.subscribe</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2017 &mdash; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">黎磊</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("CBlmxiks7wa9HSMzB6qCBn8e-gzGzoHsz", "srDRntSLb67VmC6FvqmCXA79");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
